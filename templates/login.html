@@ -10,17 +10,18 @@
             max-width: 400px;
             margin: 50px auto;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color: #ffffff;
         }
         .container {
-            background: white;
+            background: #f9f9f9;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            border: 1px solid #ddd;
         }
         h1 {
             text-align: center;
             color: #333;
+            font-weight: normal;
         }
         .form-group {
             margin-bottom: 15px;
@@ -28,41 +29,57 @@
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: normal;
+            color: #333;
         }
         input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
             box-sizing: border-box;
+            font-size: 14px;
         }
         button {
             width: 100%;
-            padding: 12px;
-            background-color: #2196F3;
+            padding: 10px;
+            background-color: #333;
             color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 16px;
+            border-radius: 3px;
+            font-size: 14px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #1976D2;
+            background-color: #555;
         }
         .message {
             margin-top: 15px;
             padding: 10px;
-            border-radius: 5px;
+            border-radius: 3px;
             text-align: center;
+            border: 1px solid #ddd;
         }
         .success {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-color: #a5d6a7;
         }
         .error {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #ffebee;
+            color: #c62828;
+            border-color: #ef9a9a;
+        }
+        .link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .link a {
+            color: #333;
+            text-decoration: none;
+        }
+        .link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -81,6 +98,9 @@
             <button type="submit">Войти</button>
         </form>
         <div id="message"></div>
+        <div class="link">
+            <a href="/register">Нет аккаунта? Зарегистрируйтесь</a>
+        </div>
     </div>
 
     <script>
@@ -107,7 +127,9 @@
                 if (response.ok) {
                     messageDiv.className = 'message success';
                     messageDiv.textContent = data.message;
-                    document.getElementById('loginForm').reset();
+                    setTimeout(() => {
+                        window.location.href = '/profile';
+                    }, 1000);
                 } else {
                     messageDiv.className = 'message error';
                     messageDiv.textContent = data.message;

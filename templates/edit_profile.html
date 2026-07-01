@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация</title>
+    <title>Редактирование профиля</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 400px;
+            max-width: 500px;
             margin: 50px auto;
             padding: 20px;
             background-color: #ffffff;
@@ -24,7 +24,7 @@
             font-weight: normal;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
@@ -40,17 +40,37 @@
             box-sizing: border-box;
             font-size: 14px;
         }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
+        input:focus {
+            outline: none;
+            border-color: #888;
+        }
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: 1px solid #ccc;
             border-radius: 3px;
             font-size: 14px;
             cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            flex: 1;
+            background-color: #f0f0f0;
+            color: #333;
         }
-        button:hover {
+        .btn:hover {
+            background-color: #e0e0e0;
+        }
+        .btn-save {
+            background-color: #333;
+            color: white;
+            border-color: #333;
+        }
+        .btn-save:hover {
             background-color: #555;
         }
         .message {
@@ -70,23 +90,18 @@
             color: #c62828;
             border-color: #ef9a9a;
         }
-        .link {
+        .loader {
             text-align: center;
-            margin-top: 15px;
-        }
-        .link a {
-            color: #333;
-            text-decoration: none;
-        }
-        .link a:hover {
-            text-decoration: underline;
+            padding: 20px;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Регистрация</h1>
-        <form id="registerForm">
+        <h1>Редактирование профиля</h1>
+        <div id="loader" class="loader">Загрузка данных...</div>
+        <form id="editForm" style="display: none;">
             <div class="form-group">
                 <label for="username">Имя пользователя</label>
                 <input type="text" id="username" placeholder="Введите имя пользователя" required>
@@ -95,36 +110,55 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" placeholder="Введите email" required>
             </div>
-            <div class="form-group">
-                <label for="password">Пароль</label>
-                <input type="password" id="password" placeholder="Введите пароль" required>
+            <div class="buttons">
+                <button type="submit" class="btn btn-save">Сохранить</button>
+                <a href="/profile" class="btn">Отмена</a>
             </div>
-            <button type="submit">Зарегистрироваться</button>
         </form>
         <div id="message"></div>
-        <div class="link">
-            <a href="/login">Уже есть аккаунт? Войдите</a>
-        </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile');
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки профиля');
+                }
+
+                const user = await response.json();
+                document.getElementById('username').value = user.username;
+                document.getElementById('email').value = user.email;
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('editForm').style.display = 'block';
+            } catch (error) {
+                document.getElementById('loader').innerHTML =
+                    '<div class="message error">Ошибка загрузки данных</div>';
+            }
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const username = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
 
             const messageDiv = document.getElementById('message');
             messageDiv.className = 'message';
 
             try {
-                const response = await fetch('/api/register', {
-                    method: 'POST',
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username, email, password })
+                    body: JSON.stringify({ username, email })
                 });
 
                 const data = await response.json();
@@ -132,9 +166,8 @@
                 if (response.ok) {
                     messageDiv.className = 'message success';
                     messageDiv.textContent = data.message;
-                    document.getElementById('registerForm').reset();
                     setTimeout(() => {
-                        window.location.href = '/login';
+                        window.location.href = '/profile';
                     }, 1500);
                 } else {
                     messageDiv.className = 'message error';
@@ -142,9 +175,11 @@
                 }
             } catch (error) {
                 messageDiv.className = 'message error';
-                messageDiv.textContent = 'Ошибка при отправке запроса';
+                messageDiv.textContent = 'Ошибка при сохранении';
             }
         });
+
+        window.onload = loadProfile;
     </script>
 </body>
 </html>

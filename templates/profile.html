@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-weight: normal;
+        }
+        .welcome {
+            text-align: center;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .info-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: #ffffff;
+            border-radius: 3px;
+            border: 1px solid #eee;
+        }
+        .info-item strong {
+            display: inline-block;
+            width: 150px;
+            color: #555;
+            font-weight: normal;
+        }
+        .info-item span {
+            color: #333;
+        }
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .btn:hover {
+            background-color: #e0e0e0;
+        }
+        .btn-logout {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .btn-logout:hover {
+            background-color: #e0e0e0;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 3px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-color: #a5d6a7;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border-color: #ef9a9a;
+        }
+        .loader {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Мой профиль</h1>
+        <div id="welcomeMessage" class="welcome"></div>
+        <div id="profileInfo">
+            <div id="loader" class="loader">Загрузка данных...</div>
+        </div>
+        <div class="buttons">
+            <a href="/edit_profile" class="btn">Редактировать профиль</a>
+            <button onclick="logout()" class="btn btn-logout">Выйти</button>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile');
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки профиля');
+                }
+
+                const user = await response.json();
+
+                document.getElementById('welcomeMessage').textContent =
+                    `Добро пожаловать, ${user.username}!`;
+
+                document.getElementById('loader').innerHTML = `
+                    <div class="info-item">
+                        <strong>ID:</strong>
+                        <span>${user.id}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Имя пользователя:</strong>
+                        <span>${user.username}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Email:</strong>
+                        <span>${user.email}</span>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('loader').innerHTML = `
+                    <div class="message error">Ошибка загрузки данных</div>
+                `;
+            }
+        }
+
+        async function logout() {
+            if (!confirm('Вы уверены, что хотите выйти?')) return;
+
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    window.location.href = '/login';
+                } else {
+                    const data = await response.json();
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка при выходе', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.className = 'message ' + type;
+            msgDiv.textContent = text;
+            setTimeout(() => {
+                msgDiv.className = 'message';
+                msgDiv.textContent = '';
+            }, 5000);
+        }
+
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>
